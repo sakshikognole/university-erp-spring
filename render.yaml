@@ -13,3 +13,5 @@ services:
         value: university-erp
       - key: SERVER_PORT
         value: 8080
+      - key: FRONTEND_URL
+        sync: false    # Set to your Render frontend URL e.g. https://university-erp-frontend.onrender.com
