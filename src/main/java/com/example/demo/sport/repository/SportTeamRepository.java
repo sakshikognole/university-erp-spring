@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
+@Repository("legacySportTeamRepository")
 public interface SportTeamRepository extends MongoRepository<SportTeam, String> {
     Optional<SportTeam> findByTeamId(String teamId);
     boolean existsByTeamId(String teamId);

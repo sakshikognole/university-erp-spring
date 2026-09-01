@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
+@Service("legacySportTeamService")
 public class SportTeamService {
 
     private final SportTeamRepository repo;

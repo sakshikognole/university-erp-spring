@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-@RestController
-@RequestMapping("/api/sport-teams")
+@RestController("legacySportTeamController")
+@RequestMapping("/api/sport-teams-legacy")
 public class SportTeamController {
 
     private final SportTeamService service;
