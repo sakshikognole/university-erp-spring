@@ -25,6 +25,12 @@ public class StudentService {
                 .collect(Collectors.toList());
     }
 
+    public StudentResponse getStudentByPrn(String prn) {
+        Student s = studentRepository.findByPrn(prn)
+                .orElseThrow(() -> new StudentNotFoundException("PRN: " + prn));
+        return new StudentResponse(s);
+    }
+
     public StudentResponse getStudentById(String studentId) {
         return new StudentResponse(findOrThrow(studentId));
     }

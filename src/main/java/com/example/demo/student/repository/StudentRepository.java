@@ -10,4 +10,7 @@ import java.util.Optional;
 public interface StudentRepository extends MongoRepository<Student, String> {
     Optional<Student> findByStudentId(String studentId);
     boolean existsByStudentId(String studentId);
+
+    // Used by Hostel and SportTeam PRN lookup
+    Optional<Student> findByPrn(String prn);
 }

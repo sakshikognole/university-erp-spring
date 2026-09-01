@@ -23,6 +23,15 @@ public class StudentController {
         return ResponseEntity.ok(studentService.getAllStudents());
     }
 
+    @GetMapping("/by-prn/{prn}")
+    public ResponseEntity<?> getByPrn(@PathVariable String prn) {
+        try {
+            return ResponseEntity.ok(studentService.getStudentByPrn(prn));
+        } catch (Exception ex) {
+            return ResponseEntity.status(404).body(Map.of("error", ex.getMessage()));
+        }
+    }
+
     @GetMapping("/{studentId}")
     public ResponseEntity<StudentResponse> getOne(@PathVariable String studentId) {
         return ResponseEntity.ok(studentService.getStudentById(studentId));
