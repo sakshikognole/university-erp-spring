@@ -9,20 +9,55 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Collation;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
 public class BookService {
 
     private final BookRepository bookRepository;
+    private final MongoTemplate  mongoTemplate;
 
+    // ── Defect #6: Case-insensitive sort using MongoDB collation ────────────
+    // Sort.by("bookTitle") is case-sensitive — "apple" comes after "Zebra".
+    // We use MongoTemplate with a locale-aware collation (strength=2 ignores case).
     public PageResponse<Book> getAllBooks(String search, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("bookTitle").ascending());
-        Page<Book> result = (search == null || search.isBlank())
-                ? bookRepository.findAll(pageable)
-                : bookRepository.searchBooks(search.trim(), pageable);
-        return toPageResponse(result);
+        Collation collation = Collation.of(Locale.ENGLISH).strength(Collation.ComparisonLevel.secondary());
+
+        Query query = new Query();
+
+        // ── Defect #5: include _id in search so Book ID works in search bar ──
+        if (search != null && !search.isBlank()) {
+            String escaped = search.trim().replace("(", "\\(").replace(")", "\\)");
+            query.addCriteria(new Criteria().orOperator(
+                Criteria.where("bookTitle").regex(escaped, "i"),
+                Criteria.where("authorName").regex(escaped, "i"),
+                Criteria.where("_id").regex(escaped, "i")
+            ));
+        }
+
+        // Total count for pagination (without collation — count doesn't need it)
+        long total = mongoTemplate.count(query, Book.class);
+
+        // Apply sort with collation + pagination
+        query.with(Sort.by(Sort.Direction.ASC, "bookTitle"))
+             .skip((long) page * size)
+             .limit(size);
+        query.collation(collation);
+
+        List<Book> content = mongoTemplate.find(query, Book.class);
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Book> pageResult = PageableExecutionUtils.getPage(content, pageable, () -> total);
+        return toPageResponse(pageResult);
     }
 
     public Book getById(String id) {
@@ -30,8 +65,16 @@ public class BookService {
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
     }
 
+    // ── Defect #2: Duplicate book validation ─────────────────────────────────
+    // Check if a book with the same title AND author already exists.
     public Book create(Book book) {
-        book.setId(null); // let MongoDB generate it
+        boolean exists = bookRepository.existsByBookTitleIgnoreCaseAndAuthorNameIgnoreCase(
+                book.getBookTitle().trim(), book.getAuthorName().trim());
+        if (exists) {
+            throw new IllegalArgumentException(
+                "A book titled \"" + book.getBookTitle() + "\" by " + book.getAuthorName() + " already exists.");
+        }
+        book.setId(null);
         return bookRepository.save(book);
     }
 

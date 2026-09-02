@@ -31,9 +31,14 @@ public class BookController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Book>> create(@Valid @RequestBody Book book) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Book created", bookService.create(book)));
+    public ResponseEntity<?> create(@Valid @RequestBody Book book) {
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(ApiResponse.success("Book created", bookService.create(book)));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error(ex.getMessage()));
+        }
     }
 
     @PutMapping("/{id}")
