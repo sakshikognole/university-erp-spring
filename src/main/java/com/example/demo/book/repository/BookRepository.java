@@ -21,4 +21,7 @@ public interface BookRepository extends MongoRepository<Book, String> {
 
     // Defect #2: duplicate validation — case-insensitive match on title + author
     boolean existsByBookTitleIgnoreCaseAndAuthorNameIgnoreCase(String bookTitle, String authorName);
+
+    // User-provided bookId uniqueness check
+    boolean existsByBookId(String bookId);
 }

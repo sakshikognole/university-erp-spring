@@ -65,21 +65,26 @@ public class BookService {
                 .orElseThrow(() -> new ResourceNotFoundException("Book not found with id: " + id));
     }
 
-    // ── Defect #2: Duplicate book validation ─────────────────────────────────
+    // ── Defect #2 + Book ID: user provides bookId, validate uniqueness ──────
     public Book create(Book book) {
+        String bookId = (book.getBookId() != null) ? book.getBookId().trim() : "";
+        if (bookId.isBlank()) {
+            throw new IllegalArgumentException("Book ID is required.");
+        }
+        // Check for duplicate bookId
+        if (bookRepository.existsByBookId(bookId)) {
+            throw new IllegalArgumentException(
+                "Book ID \"" + bookId + "\" is already in use. Please enter a different ID.");
+        }
+        // Check for duplicate title + author
         boolean exists = bookRepository.existsByBookTitleIgnoreCaseAndAuthorNameIgnoreCase(
                 book.getBookTitle().trim(), book.getAuthorName().trim());
         if (exists) {
             throw new IllegalArgumentException(
                 "A book titled \"" + book.getBookTitle() + "\" by " + book.getAuthorName() + " already exists.");
         }
-
-        // Auto-generate bookId like BK-001, BK-002, ...
         book.setId(null);
-        if (book.getBookId() == null || book.getBookId().isBlank()) {
-            long count = bookRepository.count();
-            book.setBookId(String.format("BK-%03d", count + 1));
-        }
+        book.setBookId(bookId);
         return bookRepository.save(book);
     }
 
