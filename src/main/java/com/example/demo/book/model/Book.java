@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "books")
@@ -17,6 +18,11 @@ public class Book {
 
     @Id
     private String id;
+
+    // Human-readable Book ID — auto-generated as BK-001, BK-002, etc.
+    // Indexed for fast search.
+    @Indexed(unique = true, sparse = true)
+    private String bookId;
 
     @NotBlank(message = "Book title is required")
     private String bookTitle;

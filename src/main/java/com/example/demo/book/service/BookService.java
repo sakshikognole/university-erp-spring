@@ -34,13 +34,13 @@ public class BookService {
 
         Query query = new Query();
 
-        // ── Defect #5: include _id in search so Book ID works in search bar ──
+        // ── Defect #5: search by bookTitle, authorName, OR bookId ──
         if (search != null && !search.isBlank()) {
             String escaped = search.trim().replace("(", "\\(").replace(")", "\\)");
             query.addCriteria(new Criteria().orOperator(
                 Criteria.where("bookTitle").regex(escaped, "i"),
                 Criteria.where("authorName").regex(escaped, "i"),
-                Criteria.where("_id").regex(escaped, "i")
+                Criteria.where("bookId").regex(escaped, "i")
             ));
         }
 
@@ -66,7 +66,6 @@ public class BookService {
     }
 
     // ── Defect #2: Duplicate book validation ─────────────────────────────────
-    // Check if a book with the same title AND author already exists.
     public Book create(Book book) {
         boolean exists = bookRepository.existsByBookTitleIgnoreCaseAndAuthorNameIgnoreCase(
                 book.getBookTitle().trim(), book.getAuthorName().trim());
@@ -74,7 +73,13 @@ public class BookService {
             throw new IllegalArgumentException(
                 "A book titled \"" + book.getBookTitle() + "\" by " + book.getAuthorName() + " already exists.");
         }
+
+        // Auto-generate bookId like BK-001, BK-002, ...
         book.setId(null);
+        if (book.getBookId() == null || book.getBookId().isBlank()) {
+            long count = bookRepository.count();
+            book.setBookId(String.format("BK-%03d", count + 1));
+        }
         return bookRepository.save(book);
     }
 
