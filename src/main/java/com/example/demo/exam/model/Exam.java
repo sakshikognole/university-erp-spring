@@ -40,11 +40,10 @@ public class Exam {
 
     private String displayMode = "PERCENTAGE";
 
-    /**
-     * Custom denominator for FRACTION display mode.
-     * e.g. fractionScale=5 → 20 raw marks shown as x/5
-     * Default: 10
-     */
+    /** Custom max % for PERCENTAGE mode. e.g. 50 means show as x% out of 50. Default: 100 */
+    private Integer percentageScale = 100;
+
+    /** Custom denominator for FRACTION mode. e.g. 5 means show as x/5. Default: 10 */
     private Integer fractionScale = 10;
 
     // ── Isolated marks lists per exam type ────────────────────────────────

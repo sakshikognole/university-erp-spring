@@ -80,6 +80,9 @@ public class ExamService {
         existing.setDisplayMode(
             incoming.getDisplayMode() != null ? incoming.getDisplayMode() : "PERCENTAGE"
         );
+        existing.setPercentageScale(
+            incoming.getPercentageScale() != null ? incoming.getPercentageScale() : 100
+        );
         existing.setFractionScale(
             incoming.getFractionScale() != null ? incoming.getFractionScale() : 10
         );
